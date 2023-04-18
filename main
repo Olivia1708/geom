@@ -1,0 +1,317 @@
+import sys
+from cmath import sqrt
+
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import Qt, QPoint, QRect
+from PyQt5.QtGui import QPainter, QPen
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QLineEdit
+
+
+class Segment:
+    def __init__(self, x1, y1, x2, y2, id):
+        self.x1 = x1
+        self.y1 = y1
+        self.x2 = x2
+        self.y2 = y2
+        self.id = id
+
+class Rectangle:
+    def __init__(self, x1, y1, x2, y2, a, b):
+        if (y1 > y2):
+            self.x1 = x1
+            self.y1 = y1
+            self.x2 = x2
+            self.y2 = y2
+        else:
+            self.x1 = x2
+            self.y1 = y2
+            self.x2 = x1
+            self.y2 = y1
+        self.a = a
+        self.b = b
+        self.x3 = 0
+        self.y3 = 0
+        self.x4 = 0
+        self.y4 = 0
+
+
+    def search_coord(self):
+        area = self.area_triangle(self.x1, self.y1, self.x2, self.y2, self.a, self.b)
+        height = 2 * area / sqrt((self.x1 - self.x2) ** 2 + (self.y1 - self.y2) ** 2)
+        if self.skew_product((self.a - self.x2), (self.b - self.y2), (self.x1-self.x2), (self.y1 - self.y2)) > 0:
+            if (self.x1 > self.x2):
+                self.y4 = self.y1 - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))
+                self.x4 = self.x1 + sqrt((height - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))) * (height + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))))
+            else:
+                self.y4 = self.y1 + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))
+                self.x4 = self.x1 + sqrt((height - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))) * (height + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))))
+
+        else:
+            if (self.x1 > self.x2):
+                self.y4 = self.y1 + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))
+                self.x4 = self.x1 - sqrt((height - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))) * (height + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))))
+
+            else:
+                self.y4 = self.y1 - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))
+                self.x4 = self.x1 - sqrt((height - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))) * (height + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))))
+        self.x3 = self.x4 - self.x1 + self.x2
+        self.y3 = self.y2 + self.y4 - self.y1
+    def skew_product(self, x1, y1, x2, y2):
+        return (x1*y2 - x2*y1)
+
+    def area_triangle(self, q1, s1, q2, s2, q3, s3):
+        return abs(1 / 2 * ((q2 - q1) * (s3 - s1) - (q3 - q1) * (s2 - s1)))
+
+    def draw(self, painter):
+        painter.setPen(QPen(Qt.green, 2))
+        self.x3 = int(self.x3.real)
+        self.y3 = int(self.y3.real)
+        self.x4 = int(self.x4.real)
+        self.y4 = int(self.y4.real)
+        painter.drawLine(600 + self.x1, 360 - self.y1, 600 + self.x2, 360 - self.y2)
+        painter.drawLine(600 + self.x2, 360 - self.y2, 600 + self.x3, 360 - self.y3)
+        painter.drawLine(600 + self.x3, 360 - self.y3, 600 + self.x4, 360 - self.y4)
+        painter.drawLine(600 + self.x4, 360 - self.y4, 600 + self.x1, 360 - self.y1)
+
+class Main(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.start_x, self.start_y = 0, 0
+        self.scale = 1
+        self.width, self.height = 1200, 720
+        self.c_x, self.c_y = self.width // 2, self.height // 2
+        self.my_dots = list()
+        self.rects = []
+        self.count_rects = 0
+        self.segs = []
+        self.sos = 4
+        self.repit = 1
+        self.count_help = 0
+        self.max_length = 0
+        self.i_ans = None
+        self.j_ans = None
+        self.dots_intersected = []
+        self.dots_intersected_id = []
+        self.initUI()
+
+
+
+    def initUI(self):
+        self.setGeometry(self.start_x, self.start_y, self.width, self.height)
+        self.setWindowTitle("Test")
+
+        self.nameLabel1 = QLabel(self)
+        self.nameLabel1.setText("x: ")
+        self.line_x = QLineEdit(self)
+        self.line_x.move(20, 160)
+        self.line_x.resize(50, 15)
+        self.nameLabel1.move(10, 150)
+
+
+
+        self.nameLabel2 = QLabel(self)
+        self.nameLabel2.setText("y: ")
+        self.line_y = QLineEdit(self)
+        self.line_y.move(20, 195)
+        self.line_y.resize(50, 15)
+        self.nameLabel2.move(10, 185)
+
+
+        self.clear_btn = QPushButton("Очистить", self)
+        self.clear_btn.resize(90, 50)
+        self.clear_btn.move(20, 20)
+        self.clear_btn.clicked.connect(self.clear)
+
+        self.button = QPushButton("Добавить", self)
+        self.button.resize(90, 50)
+        self.button.move(20, 90)
+        self.button.clicked.connect(self.buttondef)
+
+
+        self.button_listen = QPushButton('Выбрать файл', self)
+        self.button_listen.resize(90, 50)
+        self.button_listen.move(20, 230)
+        self.button_listen.clicked.connect(self.startToListen)
+
+
+
+    def startToListen(self):
+        file, _ = QtWidgets.QFileDialog.getOpenFileName(self,
+                        'Open File',
+                        './',
+                        'Text Files (*.txt)')
+        if not file:
+            return
+        file = open(file)
+        data = file.readlines()
+        for i in range(len(data)):
+            x1, y1, x2, y2, a, b = map(int, data[i].split(' '))
+            self.my_dots.append((x1, y1))
+            self.my_dots.append((x2, y2))
+            self.my_dots.append((a, b))
+
+
+        self.count_help = 1
+        self.update()
+
+
+
+    def buttondef (self):
+        x, y = self.line_x.text(), self.line_y.text()
+        if (x != '' and y != ''):
+            self.my_dots.append((int(x), int(y)))
+            self.count_help = 1
+            self.update()
+
+
+    def mousePressEvent(self, event):
+        x, y = event.x(), event.y()
+        self.my_dots.append(((x - self.c_x), (self.c_y - y)))
+        self.count_help = 1
+        self.update()
+
+    def clear(self):
+        self.start_x, self.start_y = 0, 0
+        self.scale = 1
+        self.width, self.height = 1200, 720
+        self.c_x, self.c_y = self.width // 2, self.height // 2
+        self.my_dots = []
+        self.rects = []
+        self.count_rects = 0
+        self.segs = []
+        self.sos = 4
+        self.repit = 1
+        self.count_help = 0
+        self.max_length = 0
+        self.i_ans = None
+        self.j_ans = None
+        self.dots_intersected = []
+        self.dots_intersected_id = []
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter()
+        painter.begin(self)
+        self.drawGrid(painter)
+        self.drawDots(painter)
+        self.findRects()
+        self.drawRects(painter)
+        self.intersect_seg(painter)
+        self.drawDots_intersected(painter)
+        self.answer(painter)
+        painter.end()
+
+    def drawDots(self, painter):
+        painter.setPen(QPen(Qt.gray, 5))
+        for x, y in self.my_dots:
+            painter.drawEllipse(self.c_x + x * self.scale, self.c_y - y * self.scale, 1, 1)
+
+    def drawGrid(self, painter):
+        painter.setPen(QPen(Qt.black, 2))
+        painter.drawLine(0, self.c_y, self.width, self.c_y)
+        painter.drawLine(self.c_x, 0, self.c_x, self.height)
+
+
+
+    def findRects(self):
+        if len(self.my_dots) > 0 and (len(self.my_dots)%3 == 0) and self.count_help == 1:
+            self.count_rects = len(self.my_dots)//3
+            rect = Rectangle(self.my_dots[3*self.count_rects - 3][0], self.my_dots[3*self.count_rects - 3][1], self.my_dots[3*self.count_rects - 2][0], self.my_dots[3*self.count_rects - 2][1], self.my_dots[3*self.count_rects - 1][0], self.my_dots[3*self.count_rects - 1][1])
+
+            rect.search_coord()
+            self.rects.append(rect)
+            seg = Segment(rect.x1, rect.y1, rect.x2, rect.y2, self.count_rects)
+            self.segs.append(seg)
+            seg = Segment(rect.x2, rect.y2, rect.x3, rect.y3, self.count_rects)
+            self.segs.append(seg)
+            seg = Segment(rect.x3, rect.y3, rect.x4, rect.y4, self.count_rects)
+            self.segs.append(seg)
+            seg = Segment(rect.x4, rect.y4, rect.x1, rect.y1, self.count_rects)
+            self.segs.append(seg)
+            self.count_help = 0
+
+
+    def drawRects(self, painter):
+        painter.setPen(QPen(Qt.green, 2))
+        for recti in self.rects:
+            recti.draw(painter)
+
+    def intersect_seg(self, painter):
+        if len(self.segs)>4 and (self.sos != 4*self.count_rects - 4):
+            for i in range(4*self.count_rects - 4, len(self.segs)):
+                for j in range(0, 4*self.count_rects-4):
+                    inter = self.intersect(self.segs[i].x1, self.segs[i].y1, self.segs[i].x2, self.segs[i].y2,
+                        self.segs[j].x1, self.segs[j].y1, self.segs[j].x2, self.segs[j].y2)
+                    if inter!=None and self.sos<=i and (i//4!=j//4):
+                        self.dots_intersected.append(inter)
+                        ides = (i, j, i//4, j//4, inter)
+                        self.dots_intersected_id.append(ides)
+
+            self.sos = 4*self.count_rects - 4
+        elif self.count_rects == 2 and self.repit == 1:
+            for i in range(4*self.count_rects - 4, len(self.segs)):
+                for j in range(0, 4*self.count_rects-4):
+                    inter = self.intersect(self.segs[i].x1, self.segs[i].y1, self.segs[i].x2, self.segs[i].y2,
+                        self.segs[j].x1, self.segs[j].y1, self.segs[j].x2, self.segs[j].y2)
+                    if inter!=None and self.sos<=i and (i//4!=j//4):
+                        self.dots_intersected.append(inter)
+                        ides = (i, j, i//4, j//4, inter)
+                        self.dots_intersected_id.append(ides)
+
+            self.sos = 4*self.count_rects - 4
+            self.repit = 0
+
+    def intersect(self, x1, y1, x2, y2, x3, y3, x4, y4):
+        x1 = int(x1.real)
+        y1 = int(y1.real)
+        x2 = int(x2.real)
+        x3 = int(x3.real)
+        x4 = int(x4.real)
+        y2 = int(y2.real)
+        y3 = int(y3.real)
+        y4 = int(y4.real)
+        denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1)
+        if denom == 0:  # parallel
+            return None
+        ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom
+        if ua < 0 or ua > 1:  # out of range
+            return None
+        ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom
+        if ub < 0 or ub > 1:  # out of range
+            return None
+        x = x1 + ua * (x2 - x1)
+        y = y1 + ua * (y2 - y1)
+        return (x, y)
+
+    def drawDots_intersected(self, painter):
+        painter.setPen(QPen(Qt.black, 2))
+        for x, y in self.dots_intersected:
+            painter.drawEllipse(round(self.c_x + x * self.scale), round(self.c_y - y * self.scale), 1, 1)
+
+    def answer(self, painter):
+        painter.setPen(QPen(Qt.red, 2))
+        self.dots_intersected_id.sort(key=lambda x: x[2])
+        self.dots_intersected_id.sort(key=lambda x: x[3])
+        if (len(self.dots_intersected_id)>1):
+            for i in range(0, len(self.dots_intersected_id)):
+                for j in range(i+1, len(self.dots_intersected_id)):
+                    if self.dots_intersected_id[i][2] == self.dots_intersected_id[j][2] and self.dots_intersected_id[i][3] == self.dots_intersected_id[j][3]:
+                        length_seg = float((self.lenght(self.dots_intersected_id[i][4][0], self.dots_intersected_id[i][4][1], self.dots_intersected_id[j][4][0], self.dots_intersected_id[j][4][1])).real)
+                        if length_seg > self.max_length:
+                            self.max_length = length_seg
+                            self.i_ans = i
+                            self.j_ans = j
+
+            painter.drawLine(600 + self.dots_intersected_id[self.i_ans][4][0], 360 - self.dots_intersected_id[self.i_ans][4][1],
+                         600 + self.dots_intersected_id[self.j_ans][4][0], 360 - self.dots_intersected_id[self.j_ans][4][1])
+
+            painter.drawText(50, 650, "Ответ: "+ str(round(self.max_length, 2)))
+    def lenght(self, x1, y1, x2, y2):
+        return sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    main = Main()
+    main.show()
+    sys.exit(app.exec())
