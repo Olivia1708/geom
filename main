@@ -16,7 +16,7 @@ class Segment:
         self.id = id
 
 class Rectangle:
-    def __init__(self, x1, y1, x2, y2, a, b):
+    def __init__(self, x1, y1, x2, y2, a, b): #инициализация трех начальных точек прямоугольника (введенных)
         if (y1 > y2):
             self.x1 = x1
             self.y1 = y1
@@ -35,10 +35,10 @@ class Rectangle:
         self.y4 = 0
 
 
-    def search_coord(self):
+    def search_coord(self): # нахождение третьей и четвертой вершины прямоугольника 
         area = self.area_triangle(self.x1, self.y1, self.x2, self.y2, self.a, self.b)
         height = 2 * area / sqrt((self.x1 - self.x2) ** 2 + (self.y1 - self.y2) ** 2)
-        if self.x1 != self.x2:
+        if self.x1 != self.x2: # если прямоугольники не параллельны осям
             if self.skew_product((self.a - self.x2), (self.b - self.y2), (self.x1-self.x2), (self.y1 - self.y2)) > 0:
                 if (self.x1 > self.x2):
                     self.y4 = self.y1 - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))
@@ -57,18 +57,18 @@ class Rectangle:
                     self.x4 = self.x1 - sqrt((height - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))) * (height + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))))
             self.x3 = self.x4 - self.x1 + self.x2
             self.y3 = self.y2 + self.y4 - self.y1
-        else:
+        else: # прямоугольник параллелен осям
             self.x3 = self.a
             self.y3 = self.y2
             self.x4 = self.a
             self.y4 = self.y1
-    def skew_product(self, x1, y1, x2, y2):
+    def skew_product(self, x1, y1, x2, y2): 
         return (x1*y2 - x2*y1)
 
-    def area_triangle(self, q1, s1, q2, s2, q3, s3):
+    def area_triangle(self, q1, s1, q2, s2, q3, s3): #площаль треугольника
         return abs(1 / 2 * ((q2 - q1) * (s3 - s1) - (q3 - q1) * (s2 - s1)))
 
-    def draw(self, painter, c_x, c_y):
+    def draw(self, painter, c_x, c_y): #отрисовка прямоугольника
         self.x3 = int(self.x3.real)
         self.y3 = int(self.y3.real)
         self.x4 = int(self.x4.real)
@@ -81,24 +81,24 @@ class Rectangle:
 class Main(QWidget):
     def __init__(self):
         super().__init__()
-        self.start_x, self.start_y = 0, 0
-        self.scale = 1
-        self.width, self.height = 1200, 720
-        self.c_x, self.c_y = self.width // 2, self.height // 2
-        self.my_dots = list()
-        self.rects = []
-        self.count_rects = 0
-        self.segs = []
+        self.start_x, self.start_y = 0, 0 # центр координат
+        self.scale = 1 # масштаб
+        self.width, self.height = 1200, 720 # габариты окна
+        self.c_x, self.c_y = self.width // 2, self.height // 2 # середины
+        self.my_dots = list() # массив точек
+        self.rects = [] # массив прямоугольников
+        self.count_rects = 0 # кол-во прям.
+        self.segs = [] # массив отрезков из прям.
         self.sos = 4
         self.repit = 1
         self.count_help = 0
-        self.max_length = 0
-        self.i_ans = None
-        self.j_ans = None
-        self.dots_intersected = []
-        self.dots_intersected_id = []
-        self.answer_rect1 = None
-        self.answer_rect2 = None
+        self.max_length = 0 # длина максим. отрезка пересечения
+        self.i_ans = None # индекс 1 прям.
+        self.j_ans = None # индекс 2 прям.
+        self.dots_intersected = [] # массив точек пересечения
+        self.dots_intersected_id = [] # массив id точек пересечения
+        self.answer_rect1 = None # прям. 1 для ответа 
+        self.answer_rect2 = None # прям. 2 для ответа 
         self.initUI()
 
 
@@ -108,30 +108,30 @@ class Main(QWidget):
         self.setWindowTitle("Нахождение максимальной длины отрезка пересечения прямоугольников ")
 
 
-        self.line_x = QLineEdit(self)
+        self.line_x = QLineEdit(self) # поле для ввода x
         self.line_x.setPlaceholderText("Введите x")
         self.line_x.move(20, 160)
         self.line_x.resize(90, 15)
 
 
-        self.line_y = QLineEdit(self)
+        self.line_y = QLineEdit(self) # поле для ввода y
         self.line_y.setPlaceholderText("Введите y")
         self.line_y.move(20, 195)
         self.line_y.resize(90, 15)
 
 
-        self.clear_btn = QPushButton("Очистить", self)
-        self.clear_btn.resize(90, 50)
-        self.clear_btn.move(20, 20)
-        self.clear_btn.clicked.connect(self.clear)
+        self.clear_btn = QPushButton("Очистить", self) # кнопка 
+        self.clear_btn.resize(90, 50) # размер
+        self.clear_btn.move(20, 20) # положение
+        self.clear_btn.clicked.connect(self.clear) # функция
 
-        self.button = QPushButton("Добавить", self)
+        self.button = QPushButton("Добавить", self) # кнопка 
         self.button.resize(90, 50)
         self.button.move(20, 90)
         self.button.clicked.connect(self.buttondef)
 
 
-        self.button_listen = QPushButton('Выбрать файл', self)
+        self.button_listen = QPushButton('Выбрать файл', self) # кнопка 
         self.button_listen.resize(90, 50)
         self.button_listen.move(20, 230)
         self.button_listen.clicked.connect(self.startToListen)
@@ -142,14 +142,14 @@ class Main(QWidget):
         file, _ = QtWidgets.QFileDialog.getOpenFileName(self,
                         'Open File',
                         './',
-                        'Text Files (*.txt)')
+                        'Text Files (*.txt)') # из файла
         if not file:
             return
         file = open(file)
         data = file.readlines()
         painter = QPainter()
         painter.begin(self)
-        for i in range(len(data)):
+        for i in range(len(data)): # отрисовка из файла
             x1, y1, x2, y2, a, b = map(int, data[i].split(' '))
             self.my_dots.append((x1, y1))
             self.my_dots.append((x2, y2))
@@ -161,13 +161,11 @@ class Main(QWidget):
         self.intersect_seg(painter)
         self.drawDots_intersected(painter)
         self.answer(painter)
-
-
         painter.end()
         self.update()
 
 
-    def buttondef (self):
+    def buttondef (self): # точка из полей
         x, y = self.line_x.text(), self.line_y.text()
         if (x != '' and y != ''):
             self.my_dots.append((int(x), int(y)))
@@ -175,13 +173,13 @@ class Main(QWidget):
             self.update()
 
 
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event): # клик мышки
         x, y = event.x(), event.y()
         self.my_dots.append(((x - self.c_x), (self.c_y - y)))
         self.count_help = 1
         self.update()
 
-    def clear(self):
+    def clear(self): # очистит и начать занова
         self.start_x, self.start_y = 0, 0
         self.scale = 1
         self.width, self.height = 1200, 720
@@ -202,16 +200,16 @@ class Main(QWidget):
         self.answer_rect2 = None
         self.update()
 
-    def paintEvent(self, event):
+    def paintEvent(self, event): # вся графика
         painter = QPainter()
         painter.begin(self)
-        self.drawGrid(painter)
-        self.drawDots(painter)
-        self.findRects()
-        self.drawRects(painter)
-        self.intersect_seg(painter)
-        self.drawDots_intersected(painter)
-        self.answer(painter)
+        self.drawGrid(painter) # сетка
+        self.drawDots(painter) # точки
+        self.findRects() #нахождение вершин прямоугольника
+        self.drawRects(painter) # отрисовка прямоугольников
+        self.intersect_seg(painter) # нахождение точек пересечения
+        self.drawDots_intersected(painter) # отрисовка точек пересечения
+        self.answer(painter) # отрисовка ответа 
         painter.end()
 
     def drawDots(self, painter):
@@ -274,7 +272,7 @@ class Main(QWidget):
             self.sos = 4*self.count_rects - 4
             self.repit = 0
 
-    def intersect(self, x1, y1, x2, y2, x3, y3, x4, y4):
+    def intersect(self, x1, y1, x2, y2, x3, y3, x4, y4): #пересечение двух отрезков
         x1 = int(x1.real)
         y1 = int(y1.real)
         x2 = int(x2.real)
@@ -287,14 +285,14 @@ class Main(QWidget):
         if denom == 0:  # parallel
             return None
         ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom
-        if ua < 0 or ua > 1:  # out of range
+        if ua < 0 or ua > 1:  # проверка на то, что точка лежит на отрезке
             return None
         ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom
-        if ub < 0 or ub > 1:  # out of range
+        if ub < 0 or ub > 1:  проверка на то, что точка лежит на отрезке
             return None
         x = x1 + ua * (x2 - x1)
         y = y1 + ua * (y2 - y1)
-        return (x, y)
+        return (x, y) # точка пересчения
 
     def drawDots_intersected(self, painter):
         painter.setPen(QPen(Qt.black, 2))
@@ -321,7 +319,7 @@ class Main(QWidget):
             painter.drawLine(self.c_x + self.dots_intersected_id[self.i_ans][4][0], self.c_y - self.dots_intersected_id[self.i_ans][4][1], self.c_x + self.dots_intersected_id[self.j_ans][4][0], self.c_y - self.dots_intersected_id[self.j_ans][4][1])
             painter.drawText(50, 650, "Ответ: "+ str(round(self.max_length, 2)))
             self.update()
-    def lenght(self, x1, y1, x2, y2):
+    def lenght(self, x1, y1, x2, y2): # расстояние между двумя точками
         return sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))
 
 
