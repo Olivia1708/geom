@@ -38,40 +38,45 @@ class Rectangle:
     def search_coord(self):
         area = self.area_triangle(self.x1, self.y1, self.x2, self.y2, self.a, self.b)
         height = 2 * area / sqrt((self.x1 - self.x2) ** 2 + (self.y1 - self.y2) ** 2)
-        if self.skew_product((self.a - self.x2), (self.b - self.y2), (self.x1-self.x2), (self.y1 - self.y2)) > 0:
-            if (self.x1 > self.x2):
-                self.y4 = self.y1 - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))
-                self.x4 = self.x1 + sqrt((height - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))) * (height + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))))
-            else:
-                self.y4 = self.y1 + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))
-                self.x4 = self.x1 + sqrt((height - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))) * (height + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))))
+        if self.x1 != self.x2:
+            if self.skew_product((self.a - self.x2), (self.b - self.y2), (self.x1-self.x2), (self.y1 - self.y2)) > 0:
+                if (self.x1 > self.x2):
+                    self.y4 = self.y1 - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))
+                    self.x4 = self.x1 + sqrt((height - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))) * (height + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))))
+                else:
+                    self.y4 = self.y1 + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))
+                    self.x4 = self.x1 + sqrt((height - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))) * (height + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))))
 
+            else:
+                if (self.x1 > self.x2):
+                    self.y4 = self.y1 + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))
+                    self.x4 = self.x1 - sqrt((height - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))) * (height + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))))
+
+                else:
+                    self.y4 = self.y1 - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))
+                    self.x4 = self.x1 - sqrt((height - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))) * (height + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))))
+            self.x3 = self.x4 - self.x1 + self.x2
+            self.y3 = self.y2 + self.y4 - self.y1
         else:
-            if (self.x1 > self.x2):
-                self.y4 = self.y1 + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))
-                self.x4 = self.x1 - sqrt((height - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))) * (height + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))))
-
-            else:
-                self.y4 = self.y1 - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))
-                self.x4 = self.x1 - sqrt((height - (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))) * (height + (height / (sqrt((self.y2 - self.y1) ** 2 / ((self.x1 - self.x2) ** 2) + 1)))))
-        self.x3 = self.x4 - self.x1 + self.x2
-        self.y3 = self.y2 + self.y4 - self.y1
+            self.x3 = self.a
+            self.y3 = self.y2
+            self.x4 = self.a
+            self.y4 = self.y1
     def skew_product(self, x1, y1, x2, y2):
         return (x1*y2 - x2*y1)
 
     def area_triangle(self, q1, s1, q2, s2, q3, s3):
         return abs(1 / 2 * ((q2 - q1) * (s3 - s1) - (q3 - q1) * (s2 - s1)))
 
-    def draw(self, painter):
-        painter.setPen(QPen(Qt.green, 2))
+    def draw(self, painter, c_x, c_y):
         self.x3 = int(self.x3.real)
         self.y3 = int(self.y3.real)
         self.x4 = int(self.x4.real)
         self.y4 = int(self.y4.real)
-        painter.drawLine(600 + self.x1, 360 - self.y1, 600 + self.x2, 360 - self.y2)
-        painter.drawLine(600 + self.x2, 360 - self.y2, 600 + self.x3, 360 - self.y3)
-        painter.drawLine(600 + self.x3, 360 - self.y3, 600 + self.x4, 360 - self.y4)
-        painter.drawLine(600 + self.x4, 360 - self.y4, 600 + self.x1, 360 - self.y1)
+        painter.drawLine(c_x + self.x1, c_y - self.y1, c_x + self.x2, c_y - self.y2)
+        painter.drawLine(c_x + self.x2, c_y - self.y2, c_x + self.x3, c_y - self.y3)
+        painter.drawLine(c_x + self.x3, c_y - self.y3, c_x + self.x4, c_y - self.y4)
+        painter.drawLine(c_x + self.x4, c_y - self.y4, c_x + self.x1, c_y - self.y1)
 
 class Main(QWidget):
     def __init__(self):
@@ -92,29 +97,27 @@ class Main(QWidget):
         self.j_ans = None
         self.dots_intersected = []
         self.dots_intersected_id = []
+        self.answer_rect1 = None
+        self.answer_rect2 = None
         self.initUI()
 
 
 
     def initUI(self):
-        self.setGeometry(self.start_x, self.start_y, self.width, self.height)
-        self.setWindowTitle("Test")
+        self.setFixedSize(self.width, self.height)
+        self.setWindowTitle("Нахождение максимальной длины отрезка пересечения прямоугольников ")
 
-        self.nameLabel1 = QLabel(self)
-        self.nameLabel1.setText("x: ")
+
         self.line_x = QLineEdit(self)
+        self.line_x.setPlaceholderText("Введите x")
         self.line_x.move(20, 160)
-        self.line_x.resize(50, 15)
-        self.nameLabel1.move(10, 150)
+        self.line_x.resize(90, 15)
 
 
-
-        self.nameLabel2 = QLabel(self)
-        self.nameLabel2.setText("y: ")
         self.line_y = QLineEdit(self)
+        self.line_y.setPlaceholderText("Введите y")
         self.line_y.move(20, 195)
-        self.line_y.resize(50, 15)
-        self.nameLabel2.move(10, 185)
+        self.line_y.resize(90, 15)
 
 
         self.clear_btn = QPushButton("Очистить", self)
@@ -144,16 +147,24 @@ class Main(QWidget):
             return
         file = open(file)
         data = file.readlines()
+        painter = QPainter()
+        painter.begin(self)
         for i in range(len(data)):
             x1, y1, x2, y2, a, b = map(int, data[i].split(' '))
             self.my_dots.append((x1, y1))
             self.my_dots.append((x2, y2))
             self.my_dots.append((a, b))
+            self.count_help = 1
+            self.drawDots(painter)
+            self.findRects()
+        self.drawRects(painter)
+        self.intersect_seg(painter)
+        self.drawDots_intersected(painter)
+        self.answer(painter)
 
 
-        self.count_help = 1
+        painter.end()
         self.update()
-
 
 
     def buttondef (self):
@@ -175,7 +186,7 @@ class Main(QWidget):
         self.scale = 1
         self.width, self.height = 1200, 720
         self.c_x, self.c_y = self.width // 2, self.height // 2
-        self.my_dots = []
+        self.my_dots = list()
         self.rects = []
         self.count_rects = 0
         self.segs = []
@@ -187,6 +198,8 @@ class Main(QWidget):
         self.j_ans = None
         self.dots_intersected = []
         self.dots_intersected_id = []
+        self.answer_rect1 = None
+        self.answer_rect2 = None
         self.update()
 
     def paintEvent(self, event):
@@ -202,9 +215,9 @@ class Main(QWidget):
         painter.end()
 
     def drawDots(self, painter):
-        painter.setPen(QPen(Qt.gray, 5))
+        painter.setPen(QPen(Qt.gray, 3))
         for x, y in self.my_dots:
-            painter.drawEllipse(self.c_x + x * self.scale, self.c_y - y * self.scale, 1, 1)
+            painter.drawEllipse(self.c_x + x * self.scale, self.c_y - y * self.scale, 2, 2)
 
     def drawGrid(self, painter):
         painter.setPen(QPen(Qt.black, 2))
@@ -234,7 +247,7 @@ class Main(QWidget):
     def drawRects(self, painter):
         painter.setPen(QPen(Qt.green, 2))
         for recti in self.rects:
-            recti.draw(painter)
+            recti.draw(painter, self.c_x, self.c_y)
 
     def intersect_seg(self, painter):
         if len(self.segs)>4 and (self.sos != 4*self.count_rects - 4):
@@ -289,9 +302,6 @@ class Main(QWidget):
             painter.drawEllipse(round(self.c_x + x * self.scale), round(self.c_y - y * self.scale), 1, 1)
 
     def answer(self, painter):
-        painter.setPen(QPen(Qt.red, 2))
-        self.dots_intersected_id.sort(key=lambda x: x[2])
-        self.dots_intersected_id.sort(key=lambda x: x[3])
         if (len(self.dots_intersected_id)>1):
             for i in range(0, len(self.dots_intersected_id)):
                 for j in range(i+1, len(self.dots_intersected_id)):
@@ -301,11 +311,16 @@ class Main(QWidget):
                             self.max_length = length_seg
                             self.i_ans = i
                             self.j_ans = j
+                            self.answer_rect1 = self.rects[self.dots_intersected_id[i][2]]
+                            self.answer_rect2 = self.rects[self.dots_intersected_id[i][3]]
 
-            painter.drawLine(600 + self.dots_intersected_id[self.i_ans][4][0], 360 - self.dots_intersected_id[self.i_ans][4][1],
-                         600 + self.dots_intersected_id[self.j_ans][4][0], 360 - self.dots_intersected_id[self.j_ans][4][1])
-
+            painter.setPen(QPen(Qt.blue, 2))
+            self.answer_rect1.draw(painter, self.c_x, self.c_y)
+            self.answer_rect2.draw(painter, self.c_x, self.c_y)
+            painter.setPen(QPen(Qt.red, 3))
+            painter.drawLine(self.c_x + self.dots_intersected_id[self.i_ans][4][0], self.c_y - self.dots_intersected_id[self.i_ans][4][1], self.c_x + self.dots_intersected_id[self.j_ans][4][0], self.c_y - self.dots_intersected_id[self.j_ans][4][1])
             painter.drawText(50, 650, "Ответ: "+ str(round(self.max_length, 2)))
+            self.update()
     def lenght(self, x1, y1, x2, y2):
         return sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))
 
